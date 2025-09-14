@@ -59,41 +59,9 @@ public class BattleCatsSetup : MonoBehaviour
     
     void SetupUI()
     {
-        // Find or create UI Manager
-        BattleCatsUI uiManager = FindObjectOfType<BattleCatsUI>();
-        if (uiManager == null)
-        {
-            GameObject uiGO = new GameObject("BattleCatsUI");
-            uiManager = uiGO.AddComponent<BattleCatsUI>();
-        }
-        
-        // Set spawn point for player units
-        if (playerBase != null)
-        {
-            uiManager.playerSpawnPoint = playerBase.transform;
-        }
-        
-        // Create unit types for the UI
-        if (basicCatPrefab != null)
-        {
-            BattleCatsUI.UnitType basicCat = new BattleCatsUI.UnitType();
-            basicCat.unitName = "Basic Cat";
-            basicCat.unitPrefab = basicCatPrefab;
-            basicCat.cost = 75;
-            basicCat.cooldown = 2f;
-            uiManager.availableUnits.Add(basicCat);
-        }
-        
-        if (tankCatPrefab != null)
-        {
-            BattleCatsUI.UnitType tankCat = new BattleCatsUI.UnitType();
-            tankCat.unitName = "Tank Cat";
-            tankCat.unitPrefab = tankCatPrefab;
-            tankCat.cost = 150;
-            tankCat.cooldown = 5f;
-            uiManager.availableUnits.Add(tankCat);
-        }
-        
-        Debug.Log("🎮 Battle Cats UI setup complete!");
+        // Let BattleCatsUI handle its own setup
+        // This will be called once Unity properly compiles the BattleCatsUI script
+        Debug.Log("🎮 Battle Cats UI will be auto-created by BattleCatsUI script!");
+        Debug.Log("Make sure to assign prefabs to the BattleCatsUI component in Inspector!");
     }
 }

@@ -31,10 +31,57 @@ public class BattleCatsUI : MonoBehaviour
     void Start()
     {
         currentMoney = startingMoney;
+        
+        // Auto-find player spawn point if not assigned
+        if (playerSpawnPoint == null)
+        {
+            GameObject playerBase = GameObject.Find("PlayerBase");
+            if (playerBase != null)
+            {
+                playerSpawnPoint = playerBase.transform;
+                Debug.Log("🐱 Auto-found PlayerBase for spawning!");
+            }
+        }
+        
+        // Auto-setup default units if none assigned
+        if (availableUnits.Count == 0)
+        {
+            SetupDefaultUnits();
+        }
+        
         CreateUI();
         
         // Start money generation
         InvokeRepeating("GenerateMoney", 1f, 1f);
+    }
+    
+    void SetupDefaultUnits()
+    {
+        // Try to find unit prefabs
+        GameObject basicCat = Resources.Load<GameObject>("BasicCatPrefab");
+        GameObject tankCat = Resources.Load<GameObject>("TankCatPrefab");
+        
+        if (basicCat != null)
+        {
+            UnitType basicUnit = new UnitType();
+            basicUnit.unitName = "Basic Cat";
+            basicUnit.unitPrefab = basicCat;
+            basicUnit.cost = 75;
+            basicUnit.cooldown = 2f;
+            availableUnits.Add(basicUnit);
+        }
+        
+        if (tankCat != null)
+        {
+            UnitType tankUnit = new UnitType();
+            tankUnit.unitName = "Tank Cat";
+            tankUnit.unitPrefab = tankCat;
+            tankUnit.cost = 150;
+            tankUnit.cooldown = 5f;
+            availableUnits.Add(tankUnit);
+        }
+        
+        Debug.Log($"🎮 Setup {availableUnits.Count} default units!");
     }
     
     void CreateUI()
