@@ -16,12 +16,30 @@ public class GameManager : MonoBehaviour
     
     void Start()
     {
+        // Reset game state when starting (fixes Unity Play mode restart issue)
+        ResetGameState();
+        
         // Battle Cats style camera setup
         SetupBattleCatsCamera();
         
         Debug.Log("=== BATTLE CATS STYLE GAME STARTED ===");
         Debug.Log("Victory Condition: Destroy the EnemyBase");
         Debug.Log("Defeat Condition: Your PlayerBase is destroyed");
+    }
+    
+    void ResetGameState()
+    {
+        // Reset all game state variables
+        gameWon = false;
+        gameOver = false;
+        victoryTime = 0f;
+        gameOverTime = 0f;
+        
+        // Clear any persistent flags
+        PlayerPrefs.SetInt("EnemyBaseDestroyed", 0);
+        PlayerPrefs.SetInt("PlayerBaseDestroyed", 0);
+        
+        Debug.Log("🔄 Game state reset - Ready for fresh game!");
     }
     
     void SetupBattleCatsCamera()

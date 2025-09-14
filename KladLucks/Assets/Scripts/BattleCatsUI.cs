@@ -31,7 +31,10 @@ public class BattleCatsUI : MonoBehaviour
     
     void Start()
     {
+        // Reset UI state for fresh game
         currentMoney = startingMoney;
+        availableUnits.Clear(); // Clear any previously loaded units
+        unitButtons.Clear(); // Clear button references
         
         // Auto-find player spawn point if not assigned
         if (playerSpawnPoint == null)
