@@ -57,28 +57,32 @@ public class BattleCatsUI : MonoBehaviour
     
     void SetupDefaultUnits()
     {
-        // Try to find unit prefabs
-        GameObject basicCat = Resources.Load<GameObject>("BasicCatPrefab");
-        GameObject tankCat = Resources.Load<GameObject>("TankCatPrefab");
+        // Try to get prefabs from BattleCatsSetup component
+        BattleCatsSetup battleSetup = FindObjectOfType<BattleCatsSetup>();
         
-        if (basicCat != null)
+        if (battleSetup != null)
         {
-            UnitType basicUnit = new UnitType();
-            basicUnit.unitName = "Basic Cat";
-            basicUnit.unitPrefab = basicCat;
-            basicUnit.cost = 75;
-            basicUnit.cooldown = 2f;
-            availableUnits.Add(basicUnit);
-        }
-        
-        if (tankCat != null)
-        {
-            UnitType tankUnit = new UnitType();
-            tankUnit.unitName = "Tank Cat";
-            tankUnit.unitPrefab = tankCat;
-            tankUnit.cost = 150;
-            tankUnit.cooldown = 5f;
-            availableUnits.Add(tankUnit);
+            if (battleSetup.basicCatPrefab != null)
+            {
+                UnitType basicUnit = new UnitType();
+                basicUnit.unitName = "Basic Cat";
+                basicUnit.unitPrefab = battleSetup.basicCatPrefab;
+                basicUnit.cost = 75;
+                basicUnit.cooldown = 2f;
+                availableUnits.Add(basicUnit);
+                Debug.Log("🐱 Added Basic Cat unit from BattleCatsSetup!");
+            }
+            
+            if (battleSetup.tankCatPrefab != null)
+            {
+                UnitType tankUnit = new UnitType();
+                tankUnit.unitName = "Tank Cat";
+                tankUnit.unitPrefab = battleSetup.tankCatPrefab;
+                tankUnit.cost = 150;
+                tankUnit.cooldown = 5f;
+                availableUnits.Add(tankUnit);
+                Debug.Log("🐱 Added Tank Cat unit from BattleCatsSetup!");
+            }
         }
         
         Debug.Log($"🎮 Setup {availableUnits.Count} default units!");
