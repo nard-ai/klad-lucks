@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 public class BattleCatsUI : MonoBehaviour
@@ -90,6 +91,15 @@ public class BattleCatsUI : MonoBehaviour
     
     void CreateUI()
     {
+        // Create EventSystem if it doesn't exist (required for UI interactions)
+        if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+        {
+            GameObject eventSystemGO = new GameObject("EventSystem");
+            eventSystemGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystemGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            Debug.Log("🎮 Created EventSystem for UI interactions!");
+        }
+        
         // Create Canvas
         GameObject canvasGO = new GameObject("BattleCatsCanvas");
         canvas = canvasGO.AddComponent<Canvas>();
@@ -183,7 +193,10 @@ public class BattleCatsUI : MonoBehaviour
         textRect.offsetMax = Vector2.zero;
         
         // Button click event
-        button.onClick.AddListener(() => SpawnUnit(unitType, button));
+        button.onClick.AddListener(() => {
+            Debug.Log($"🖱️ Button clicked: {unitType.unitName}");
+            SpawnUnit(unitType, button);
+        });
         unitButtons.Add(button);
         
         Debug.Log($"🐱 Created button for {unitType.unitName} - Cost: ${unitType.cost}");
