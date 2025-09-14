@@ -107,8 +107,14 @@ public class UnitBehavior : MonoBehaviour
             }
             else
             {
-                // Move toward base
+                // Battle Cats style movement - ONLY on X-axis (left/right)
                 Vector3 direction = (targetBase.transform.position - transform.position).normalized;
+                
+                // Lock to X-axis only (2D side-scrolling like Battle Cats)
+                direction.y = 0;
+                direction.z = 0;
+                direction = direction.normalized;
+                
                 transform.position += direction * moveSpeed * Time.deltaTime;
             }
         }

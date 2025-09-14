@@ -14,6 +14,33 @@ public class GameManager : MonoBehaviour
     private float victoryTime;
     private float gameOverTime;
     
+    void Start()
+    {
+        // Battle Cats style camera setup
+        SetupBattleCatsCamera();
+        
+        Debug.Log("=== BATTLE CATS STYLE GAME STARTED ===");
+        Debug.Log("Victory Condition: Destroy the EnemyBase");
+        Debug.Log("Defeat Condition: Your PlayerBase is destroyed");
+    }
+    
+    void SetupBattleCatsCamera()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            // Position camera for side view like Battle Cats
+            mainCamera.transform.position = new Vector3(0, 5, -10);
+            mainCamera.transform.rotation = Quaternion.Euler(0, 0, 0); // Look straight ahead
+            
+            // Orthographic view for clean 2D look
+            mainCamera.orthographic = true;
+            mainCamera.orthographicSize = 8; // Adjust this for zoom level
+            
+            Debug.Log("Camera setup for Battle Cats style side-scrolling view!");
+        }
+    }
+    
     void Update()
     {
         // Check ONLY if enemy base is destroyed for victory
