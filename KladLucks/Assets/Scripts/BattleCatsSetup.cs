@@ -59,9 +59,16 @@ public class BattleCatsSetup : MonoBehaviour
     
     void SetupUI()
     {
-        // Let BattleCatsUI handle its own setup
-        // This will be called once Unity properly compiles the BattleCatsUI script
-        Debug.Log("🎮 Battle Cats UI will be auto-created by BattleCatsUI script!");
-        Debug.Log("Make sure to assign prefabs to the BattleCatsUI component in Inspector!");
+        // Create UI GameObject and attach BattleCatsUI script
+        GameObject uiManagerObject = GameObject.Find("BattleCatsUI");
+        if (uiManagerObject == null)
+        {
+            uiManagerObject = new GameObject("BattleCatsUI");
+            uiManagerObject.AddComponent<BattleCatsUI>();
+            Debug.Log("🎮 Created BattleCatsUI GameObject with script!");
+        }
+        
+        // The BattleCatsUI script will handle the rest automatically
+        Debug.Log("🐱 Battle Cats UI setup initiated!");
     }
 }
