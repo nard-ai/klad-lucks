@@ -4,22 +4,6 @@ using System.Collections.Generic;
 
 public class BattleCatsUI : MonoBehaviour
 {
-    [Header("UI Elements")]
-    public Canvas gameCanvas;
-    public GameObject unitButtonPrefab;
-    public Transform bottomPanel;
-    
-    [Header("Resources")]
-    public int playerMoney = 1000;
-    public Text moneyDisplay;
-    public int moneyPerSecond = 50;
-    
-    [Header("Unit Spawning")]
-    public Transform playerSpawnPoint;
-    public List<UnitType> availableUnits = new List<UnitType>();
-    
-    private float lastMoneyTime;
-    
     [System.Serializable]
     public class UnitType
     {
@@ -27,225 +11,199 @@ public class BattleCatsUI : MonoBehaviour
         public GameObject unitPrefab;
         public int cost;
         public float cooldown;
-        public Sprite icon;
         [HideInInspector] public float lastSpawnTime;
     }
     
+    [Header("UI Settings")]
+    public int startingMoney = 200;
+    public int moneyPerSecond = 50;
+    public Transform playerSpawnPoint;
+    
+    [Header("Available Units")]
+    public List<UnitType> availableUnits = new List<UnitType>();
+    
+    // UI Elements
+    private Canvas canvas;
+    private Text moneyText;
+    private int currentMoney;
+    private List<Button> unitButtons = new List<Button>();
+    
     void Start()
     {
-        SetupUI();
+        currentMoney = startingMoney;
+        CreateUI();
+        
+        // Start money generation
+        InvokeRepeating("GenerateMoney", 1f, 1f);
+    }
+    
+    void CreateUI()
+    {
+        // Create Canvas
+        GameObject canvasGO = new GameObject("BattleCatsCanvas");
+        canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+        
+        // Add CanvasScaler and GraphicRaycaster
+        CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        canvasGO.AddComponent<GraphicRaycaster>();
+        
+        CreateMoneyDisplay();
         CreateUnitButtons();
-        lastMoneyTime = Time.time;
+        
+        Debug.Log("🎮 Battle Cats UI created successfully!");
     }
     
-    void Update()
+    void CreateMoneyDisplay()
     {
-        // Generate money over time (like Battle Cats)
-        if (Time.time - lastMoneyTime >= 1f)
-        {
-            playerMoney += moneyPerSecond;
-            lastMoneyTime = Time.time;
-            UpdateMoneyDisplay();
-        }
-    }
-    
-    void SetupUI()
-    {
-        // Create Canvas if not assigned
-        if (gameCanvas == null)
-        {
-            GameObject canvasGO = new GameObject("BattleCatsCanvas");
-            gameCanvas = canvasGO.AddComponent<Canvas>();
-            gameCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            gameCanvas.sortingOrder = 100;
-            
-            // Add CanvasScaler for responsive UI
-            CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            
-            canvasGO.AddComponent<GraphicRaycaster>();
-        }
+        // Money Display (Top Left)
+        GameObject moneyGO = new GameObject("MoneyDisplay");
+        moneyGO.transform.SetParent(canvas.transform, false);
         
-        // Create bottom panel (like Battle Cats unit selection)
-        if (bottomPanel == null)
-        {
-            GameObject panelGO = new GameObject("BottomPanel");
-            panelGO.transform.SetParent(gameCanvas.transform, false);
-            
-            Image panelImage = panelGO.AddComponent<Image>();
-            panelImage.color = new Color(0.2f, 0.15f, 0.1f, 0.9f); // Brown Battle Cats style
-            
-            RectTransform panelRect = panelGO.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0, 0);
-            panelRect.anchorMax = new Vector2(1, 0);
-            panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(0, 150); // Height of bottom panel
-            
-            bottomPanel = panelGO.transform;
-            
-            // Add horizontal layout for unit buttons
-            HorizontalLayoutGroup layout = panelGO.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 10;
-            layout.padding = new RectOffset(20, 20, 10, 10);
-            layout.childControlWidth = false;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-        }
+        moneyText = moneyGO.AddComponent<Text>();
+        moneyText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        moneyText.fontSize = 36;
+        moneyText.color = Color.yellow;
+        moneyText.text = "💰 $" + currentMoney;
         
-        // Create money display
-        if (moneyDisplay == null)
-        {
-            GameObject moneyGO = new GameObject("MoneyDisplay");
-            moneyGO.transform.SetParent(gameCanvas.transform, false);
-            
-            moneyDisplay = moneyGO.AddComponent<Text>();
-            moneyDisplay.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            moneyDisplay.fontSize = 36;
-            moneyDisplay.color = Color.yellow;
-            moneyDisplay.text = $"💰 {playerMoney}";
-            moneyDisplay.alignment = TextAnchor.MiddleLeft;
-            
-            RectTransform moneyRect = moneyGO.GetComponent<RectTransform>();
-            moneyRect.anchorMin = new Vector2(0, 1);
-            moneyRect.anchorMax = new Vector2(0, 1);
-            moneyRect.anchoredPosition = new Vector2(20, -30);
-            moneyRect.sizeDelta = new Vector2(300, 50);
-        }
-        
-        UpdateMoneyDisplay();
+        // Position at top-left
+        RectTransform moneyRect = moneyGO.GetComponent<RectTransform>();
+        moneyRect.anchorMin = new Vector2(0, 1);
+        moneyRect.anchorMax = new Vector2(0, 1);
+        moneyRect.anchoredPosition = new Vector2(150, -50);
+        moneyRect.sizeDelta = new Vector2(300, 50);
     }
     
     void CreateUnitButtons()
     {
-        // Create buttons for each available unit type
-        foreach (UnitType unitType in availableUnits)
+        // Bottom Panel Background
+        GameObject panelGO = new GameObject("BottomPanel");
+        panelGO.transform.SetParent(canvas.transform, false);
+        
+        Image panelImg = panelGO.AddComponent<Image>();
+        panelImg.color = new Color(0.4f, 0.2f, 0.1f, 0.8f); // Brown Battle Cats style
+        
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0, 0);
+        panelRect.anchorMax = new Vector2(1, 0);
+        panelRect.anchoredPosition = new Vector2(0, 75);
+        panelRect.sizeDelta = new Vector2(0, 150);
+        
+        // Create buttons for each unit type
+        for (int i = 0; i < availableUnits.Count; i++)
         {
-            CreateUnitButton(unitType);
+            CreateUnitButton(availableUnits[i], i, panelGO.transform);
         }
     }
     
-    void CreateUnitButton(UnitType unitType)
+    void CreateUnitButton(UnitType unitType, int index, Transform parent)
     {
-        GameObject buttonGO = new GameObject($"{unitType.unitName}Button");
-        buttonGO.transform.SetParent(bottomPanel, false);
+        // Button GameObject
+        GameObject buttonGO = new GameObject(unitType.unitName + "Button");
+        buttonGO.transform.SetParent(parent, false);
         
-        // Button background
-        Image buttonImage = buttonGO.AddComponent<Image>();
-        buttonImage.color = new Color(0.8f, 0.6f, 0.4f, 1f); // Light brown
+        // Button Component
+        Button button = buttonGO.AddComponent<Button>();
+        Image buttonImg = buttonGO.AddComponent<Image>();
+        buttonImg.color = new Color(0.2f, 0.6f, 1f, 0.8f); // Blue button
         
+        // Button positioning
         RectTransform buttonRect = buttonGO.GetComponent<RectTransform>();
         buttonRect.sizeDelta = new Vector2(120, 120);
+        buttonRect.anchoredPosition = new Vector2(150 + (index * 140), 0);
         
-        Button button = buttonGO.AddComponent<Button>();
-        button.targetGraphic = buttonImage;
+        // Button text
+        GameObject textGO = new GameObject("Text");
+        textGO.transform.SetParent(buttonGO.transform, false);
+        Text buttonText = textGO.AddComponent<Text>();
+        buttonText.text = unitType.unitName + "\n$" + unitType.cost;
+        buttonText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        buttonText.fontSize = 16;
+        buttonText.color = Color.white;
+        buttonText.alignment = TextAnchor.MiddleCenter;
         
-        // Unit icon
-        if (unitType.icon != null)
-        {
-            GameObject iconGO = new GameObject("Icon");
-            iconGO.transform.SetParent(buttonGO.transform, false);
-            
-            Image iconImage = iconGO.AddComponent<Image>();
-            iconImage.sprite = unitType.icon;
-            
-            RectTransform iconRect = iconGO.GetComponent<RectTransform>();
-            iconRect.anchorMin = Vector2.zero;
-            iconRect.anchorMax = Vector2.one;
-            iconRect.offsetMin = new Vector2(10, 25);
-            iconRect.offsetMax = new Vector2(-10, -10);
-        }
-        
-        // Cost text
-        GameObject costGO = new GameObject("Cost");
-        costGO.transform.SetParent(buttonGO.transform, false);
-        
-        Text costText = costGO.AddComponent<Text>();
-        costText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        costText.fontSize = 20;
-        costText.color = Color.white;
-        costText.text = $"${unitType.cost}";
-        costText.alignment = TextAnchor.MiddleCenter;
-        
-        RectTransform costRect = costGO.GetComponent<RectTransform>();
-        costRect.anchorMin = new Vector2(0, 0);
-        costRect.anchorMax = new Vector2(1, 0);
-        costRect.anchoredPosition = new Vector2(0, 12);
-        costRect.sizeDelta = new Vector2(0, 25);
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
         
         // Button click event
         button.onClick.AddListener(() => SpawnUnit(unitType, button));
+        unitButtons.Add(button);
         
-        Debug.Log($"Created unit button for {unitType.unitName} - Cost: ${unitType.cost}");
+        Debug.Log($"🐱 Created button for {unitType.unitName} - Cost: ${unitType.cost}");
     }
     
-    public void SpawnUnit(UnitType unitType, Button button)
+    void GenerateMoney()
     {
-        // Check if player has enough money
-        if (playerMoney < unitType.cost)
+        currentMoney += moneyPerSecond;
+        UpdateMoneyDisplay();
+    }
+    
+    void UpdateMoneyDisplay()
+    {
+        if (moneyText != null)
         {
-            Debug.Log($"Not enough money! Need ${unitType.cost}, have ${playerMoney}");
-            FlashButton(button, Color.red);
-            return;
+            moneyText.text = "💰 $" + currentMoney;
         }
-        
+    }
+    
+    void SpawnUnit(UnitType unitType, Button button)
+    {
         // Check cooldown
         if (Time.time - unitType.lastSpawnTime < unitType.cooldown)
         {
-            float remainingCooldown = unitType.cooldown - (Time.time - unitType.lastSpawnTime);
-            Debug.Log($"{unitType.unitName} on cooldown! {remainingCooldown:F1}s remaining");
-            FlashButton(button, Color.blue);
+            FlashButton(button, Color.blue); // Cooldown flash
+            Debug.Log($"🐱 {unitType.unitName} is on cooldown!");
             return;
         }
         
-        // Spawn the unit!
-        SpawnUnitAtBase(unitType);
-        
-        // Deduct money and update cooldown
-        playerMoney -= unitType.cost;
-        unitType.lastSpawnTime = Time.time;
-        UpdateMoneyDisplay();
-        
-        FlashButton(button, Color.green);
-        Debug.Log($"Spawned {unitType.unitName}! Money: ${playerMoney}");
-    }
-    
-    void SpawnUnitAtBase(UnitType unitType)
-    {
-        Vector3 spawnPosition = playerSpawnPoint != null ? 
-            playerSpawnPoint.position : 
-            new Vector3(-8, 0, 0); // Default left side spawn
-            
-        GameObject newUnit = Instantiate(unitType.unitPrefab, spawnPosition, Quaternion.identity);
-        
-        // Make sure unit has proper setup
-        UnitBehavior unitBehavior = newUnit.GetComponent<UnitBehavior>();
-        if (unitBehavior != null)
+        // Check money
+        if (currentMoney < unitType.cost)
         {
-            unitBehavior.isPlayerUnit = true;
-            // The unit will automatically find and target the enemy base
+            FlashButton(button, Color.red); // Not enough money flash
+            Debug.Log($"🐱 Not enough money for {unitType.unitName}! Need ${unitType.cost}, have ${currentMoney}");
+            return;
+        }
+        
+        // Spawn the unit
+        if (playerSpawnPoint != null && unitType.unitPrefab != null)
+        {
+            Vector3 spawnPos = playerSpawnPoint.position + new Vector3(1, 0, 0);
+            GameObject newUnit = Instantiate(unitType.unitPrefab, spawnPos, Quaternion.identity);
+            
+            // Deduct money
+            currentMoney -= unitType.cost;
+            unitType.lastSpawnTime = Time.time;
+            
+            UpdateMoneyDisplay();
+            FlashButton(button, Color.green); // Success flash
+            
+            Debug.Log($"🐱 Spawned {unitType.unitName} for ${unitType.cost}! Money remaining: ${currentMoney}");
         }
     }
     
     void FlashButton(Button button, Color flashColor)
     {
-        StartCoroutine(FlashButtonCoroutine(button, flashColor));
+        // Simple color flash feedback
+        Image buttonImg = button.GetComponent<Image>();
+        Color originalColor = buttonImg.color;
+        buttonImg.color = flashColor;
+        
+        // Reset color after 0.2 seconds
+        Invoke("ResetButtonColor", 0.2f);
     }
     
-    System.Collections.IEnumerator FlashButtonCoroutine(Button button, Color flashColor)
+    void ResetButtonColor()
     {
-        Color originalColor = button.targetGraphic.color;
-        button.targetGraphic.color = flashColor;
-        yield return new WaitForSeconds(0.2f);
-        button.targetGraphic.color = originalColor;
-    }
-    
-    void UpdateMoneyDisplay()
-    {
-        if (moneyDisplay != null)
+        // Reset all button colors
+        foreach (Button btn in unitButtons)
         {
-            moneyDisplay.text = $"💰 ${playerMoney}";
+            btn.GetComponent<Image>().color = new Color(0.2f, 0.6f, 1f, 0.8f);
         }
     }
 }
