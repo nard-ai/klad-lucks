@@ -12,9 +12,14 @@ public class BattleCatsSetup : MonoBehaviour
     public float battlefieldWidth = 20f;
     public float groundLevel = 0f;
     
+    [Header("Unit Prefabs for UI")]
+    public GameObject basicCatPrefab;
+    public GameObject tankCatPrefab;
+    
     void Start()
     {
         SetupBattleField();
+        SetupUI();
     }
     
     void SetupBattleField()
@@ -50,5 +55,45 @@ public class BattleCatsSetup : MonoBehaviour
         Debug.Log("🐱 Battle Cats battlefield setup complete!");
         Debug.Log("Player (BLUE) on LEFT, Enemy (RED) on RIGHT");
         Debug.Log("Units will fight in the middle, then attack opposing bases!");
+    }
+    
+    void SetupUI()
+    {
+        // Find or create UI Manager
+        BattleCatsUI uiManager = FindObjectOfType<BattleCatsUI>();
+        if (uiManager == null)
+        {
+            GameObject uiGO = new GameObject("BattleCatsUI");
+            uiManager = uiGO.AddComponent<BattleCatsUI>();
+        }
+        
+        // Set spawn point for player units
+        if (playerBase != null)
+        {
+            uiManager.playerSpawnPoint = playerBase.transform;
+        }
+        
+        // Create unit types for the UI
+        if (basicCatPrefab != null)
+        {
+            BattleCatsUI.UnitType basicCat = new BattleCatsUI.UnitType();
+            basicCat.unitName = "Basic Cat";
+            basicCat.unitPrefab = basicCatPrefab;
+            basicCat.cost = 75;
+            basicCat.cooldown = 2f;
+            uiManager.availableUnits.Add(basicCat);
+        }
+        
+        if (tankCatPrefab != null)
+        {
+            BattleCatsUI.UnitType tankCat = new BattleCatsUI.UnitType();
+            tankCat.unitName = "Tank Cat";
+            tankCat.unitPrefab = tankCatPrefab;
+            tankCat.cost = 150;
+            tankCat.cooldown = 5f;
+            uiManager.availableUnits.Add(tankCat);
+        }
+        
+        Debug.Log("🎮 Battle Cats UI setup complete!");
     }
 }

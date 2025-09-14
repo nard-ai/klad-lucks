@@ -18,6 +18,7 @@ public class UnitBehavior : MonoBehaviour
 {
     [Header("Unit Settings")]
     public UnitType unitType = UnitType.PLAYER_UNIT;
+    public bool isPlayerUnit = true; // For easy Battle Cats UI integration
     public float moveSpeed = 2f;
     public float health = 3f;
     public float maxHealth = 3f;
