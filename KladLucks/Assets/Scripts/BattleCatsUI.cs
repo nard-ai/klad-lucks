@@ -205,6 +205,8 @@ public class BattleCatsUI : MonoBehaviour
     
     void SpawnUnit(UnitType unitType, Button button)
     {
+        Debug.Log($"🐱 Attempting to spawn {unitType.unitName}...");
+        
         // Check cooldown
         if (Time.time - unitType.lastSpawnTime < unitType.cooldown)
         {
@@ -221,10 +223,15 @@ public class BattleCatsUI : MonoBehaviour
             return;
         }
         
+        // Debug spawn point and prefab
+        Debug.Log($"🐱 PlayerSpawnPoint: {(playerSpawnPoint != null ? playerSpawnPoint.name : "NULL")}");
+        Debug.Log($"🐱 UnitPrefab: {(unitType.unitPrefab != null ? unitType.unitPrefab.name : "NULL")}");
+        
         // Spawn the unit
         if (playerSpawnPoint != null && unitType.unitPrefab != null)
         {
             Vector3 spawnPos = playerSpawnPoint.position + new Vector3(1, 0, 0);
+            Debug.Log($"🐱 Spawning at position: {spawnPos}");
             GameObject newUnit = Instantiate(unitType.unitPrefab, spawnPos, Quaternion.identity);
             
             // Deduct money
@@ -234,7 +241,12 @@ public class BattleCatsUI : MonoBehaviour
             UpdateMoneyDisplay();
             FlashButton(button, Color.green); // Success flash
             
-            Debug.Log($"🐱 Spawned {unitType.unitName} for ${unitType.cost}! Money remaining: ${currentMoney}");
+            Debug.Log($"🐱 Successfully spawned {unitType.unitName} for ${unitType.cost}! Money remaining: ${currentMoney}");
+        }
+        else
+        {
+            Debug.LogError($"🚫 Cannot spawn {unitType.unitName}! PlayerSpawnPoint: {playerSpawnPoint}, Prefab: {unitType.unitPrefab}");
+            FlashButton(button, Color.red);
         }
     }
     
